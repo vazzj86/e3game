@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English 3 Spartan Arcade</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Bebas+Neue&display=swap');
+
+        :root {
+            --spartan-green: #004d26;
+            --spartan-light-green: #006b3f;
+            --spartan-white: #ffffff;
+            --spartan-grey: #f0f0f0;
+            --text-dark: #212121;
+            --correct-color: #2e7d32;
+            --incorrect-color: #c62828;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--spartan-grey);
+            color: var(--text-dark);
+            margin: 0;
+            padding: 1rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: var(--spartan-white);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .header h1 {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 3.5rem;
+            color: var(--spartan-green);
+            margin: 0;
+            letter-spacing: 2px;
+        }
+        
+        h2 {
+            font-family: 'Bebas Neue', sans-serif;
+            color: var(--spartan-light-green);
+            font-size: 2.5rem;
+            border-bottom: 2px solid var(--spartan-grey);
+            padding-bottom: 10px;
+        }
+        
+        .warning {
+            color: var(--incorrect-color);
+            font-weight: bold;
+        }
+
+        .game-section { display: none; }
+        .game-section.active { display: block; }
+        
+        canvas {
+            background-color: #000;
+            border-radius: 8px;
+            margin: 1rem auto;
+            display: block;
+            cursor: crosshair;
+        }
+        
+        .game-ui {
+            background-color: var(--spartan-grey);
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+
+        .game-ui h3 {
+            margin: 0;
+            color: var(--spartan-green);
+            font-weight: 700;
+        }
+        
+        .game-info {
+            display: flex;
+            justify-content: space-around;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+        
+        button {
+            background-color: var(--spartan-green);
+            color: var(--spartan-white);
+            border: none;
+            padding: 12px 25px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            border-radius: 50px;
+            margin: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 77, 38, 0.2);
+            text-transform: uppercase;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 77, 38, 0.3);
+        }
+        
+        .progress-bar-container {
+            width: 100%;
+            background-color: var(--spartan-grey);
+            border-radius: 50px;
+            margin: 2rem 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 25px;
+            background: linear-gradient(90deg, var(--spartan-light-green) 0%, var(--spartan-green) 100%);
+            text-align: center;
+            line-height: 25px;
+            color: white;
+            border-radius: 50px;
+            transition: width 0.5s ease-in-out;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+        
+        #completion-screen { display: none; }
+
+        #completion-code {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 2rem;
+            background-color: var(--spartan-white);
+            padding: 15px 25px;
+            border: 2px solid var(--spartan-green);
+            margin-top: 1rem;
+            display: inline-block;
+            border-radius: 8px;
+            color: var(--spartan-green);
+            font-weight: 700;
+        }
+
+        #identifier-quote-box {
+            background: #000;
+            color: #fff;
+            padding: 2rem;
+            border-radius: 10px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.2rem;
+            margin: 1rem 0;
+            min-height: 100px;
+        }
+        #identifier-options button {
+            margin: 5px;
+        }
+        #identifier-level-title {
+             font-family: 'Bebas Neue', sans-serif;
+             color: var(--spartan-green);
+             font-size: 1.8rem;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1>🛡️ Spartan Arcade 🛡️</h1>
+        </div>
+
+        <div class="progress-bar-container">
+            <div id="master-progress-bar" class="progress-bar">0%</div>
+        </div>
+
+        <div id="intro-screen" class="game-section active">
+            <h2>English 3 Exam Review</h2>
+            <p>You must complete each of the three challenges to finish the review. <span class="warning">A mistake will restart your current challenge!</span></p>
+            <button onclick="startGame()">Start Challenges</button>
+        </div>
+
+        <div id="game1-vocab" class="game-section">
+            <h2>Game 1: Vocabulary Invaders</h2>
+            <p>Use <strong>Arrow Keys</strong> to move and <strong>Spacebar</strong> to shoot. <span class="warning">A mistake will restart this game.</span></p>
+            <canvas id="vocabCanvas" width="800" height="500"></canvas>
+            <div class="game-ui">
+                <h3>DEFINITION: <span id="vocab-definition"></span></h3>
+                <div class="game-info">
+                    <span>WORDS CLEARED: <span id="vocab-cleared">0 / 5</span></span>
+                </div>
+            </div>
+        </div>
+
+        <div id="game2-identifier" class="game-section">
+            <h2>Game 2: Rhetoric Identifier</h2>
+            <p>Read the quote and select the correct term. <span class="warning">A wrong answer will restart this game.</span></p>
+            <h3 id="identifier-level-title"></h3>
+            <div id="identifier-quote-box"></div>
+            <div id="identifier-options"></div>
+            <div class="game-info" style="margin-top: 1rem;">
+                <span>QUESTIONS CLEARED: <span id="identifier-cleared">0 / 3</span></span>
+            </div>
+        </div>
+
+        <div id="game3-archery" class="game-section">
+            <h2>Game 3: Spartan Archery Trial</h2>
+            <p>Read the quote. Use your <strong>Mouse</strong> to aim, then <strong>Click to Shoot</strong> the correct analysis. <span class="warning">A mistake will restart this game.</span></p>
+            <canvas id="archeryCanvas" width="800" height="500"></canvas>
+            <div class="game-ui">
+                <h3>QUOTE: <span id="archery-quote"></span></h3>
+                <div class="game-info">
+                    <span>TARGETS HIT: <span id="archery-hit">0 / 6</span></span>
+                </div>
+            </div>
+        </div>
+        
+        <div id="completion-screen" class="game-section">
+            <h2>🏆 VICTORY! 🏆</h2>
+            <p>You have conquered the Spartan Arcade! You are prepared for the final exam.</p>
+            <p>Screenshot this page, including the unique code below, as proof of your victory.</p>
+            <div id="completion-code"></div>
+        </div>
+
+        <div id="game-message-screen" class="game-section">
+            <h2 id="game-message-title"></h2>
+            <p id="game-message-text"></p>
+            <button id="game-message-btn"></button>
+        </div>
+    </div>
+
+<script>
+// --- MASTER GAME CONTROLLER ---
+const sections = ['intro-screen', 'game1-vocab', 'game2-identifier', 'game3-archery', 'completion-screen'];
+let currentSectionIndex = 0;
+const progressChecks = [false, false, false];
+let activeGameLoop;
+
+function showSection(id) {
+    document.querySelectorAll('.game-section').forEach(s => s.classList.remove('active'));
+    const sectionElement = document.getElementById(id);
+    if (sectionElement) sectionElement.classList.add('active');
+}
+
+function startGame() {
+    currentSectionIndex = 1;
+    showSection(sections[currentSectionIndex]);
+    initVocabInvaders();
+}
+
+function updateMasterProgress() {
+    const completedCount = progressChecks.filter(Boolean).length;
+    const progress = (completedCount / progressChecks.length) * 100;
+    const bar = document.getElementById('master-progress-bar');
+    bar.style.width = `${progress}%`;
+    bar.textContent = `${Math.round(progress)}%`;
+}
+
+function advanceToNextGame() {
+    if (activeGameLoop) { cancelAnimationFrame(activeGameLoop); activeGameLoop = null; }
+    progressChecks[currentSectionIndex - 1] = true;
+    updateMasterProgress();
+    currentSectionIndex++;
+    if (sections[currentSectionIndex] === 'completion-screen') {
+        showCompletionScreen();
+    } else {
+        showSection(sections[currentSectionIndex]);
+        if (sections[currentSectionIndex] === 'game2-identifier') initIdentifierGame();
+        if (sections[currentSectionIndex] === 'game3-archery') initArcheryGame();
+    }
+}
+
+function showGameMessage(title, text, btnText, onBtnClick) {
+    if (activeGameLoop) { cancelAnimationFrame(activeGameLoop); activeGameLoop = null; }
+    showSection('game-message-screen');
+    document.getElementById('game-message-title').textContent = title;
+    document.getElementById('game-message-text').textContent = text;
+    document.getElementById('game-message-btn').textContent = btnText;
+    document.getElementById('game-message-btn').onclick = onBtnClick;
+}
+
+function restartCurrentGame(reason) {
+    if (activeGameLoop) { cancelAnimationFrame(activeGameLoop); activeGameLoop = null; }
+    let gameName = '';
+    let restartFunction;
+    
+    if (currentSectionIndex === 1) {
+        gameName = 'Vocabulary Invaders';
+        restartFunction = () => { showSection('game1-vocab'); initVocabInvaders(); };
+    } else if (currentSectionIndex === 2) {
+        gameName = 'Rhetoric Identifier';
+        restartFunction = () => { showSection('game2-identifier'); initIdentifierGame(); };
+    } else if (currentSectionIndex === 3) {
+        gameName = 'Spartan Archery Trial';
+        restartFunction = () => { showSection('game3-archery'); initArcheryGame(); };
+    }
+    
+    showGameMessage('Incorrect!', `${reason} Restarting ${gameName}.`, 'Try Again', restartFunction);
+}
+
+function showCompletionScreen() {
+    showSection('completion-screen');
+    const dateStr = `20251002`; 
+    const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase();
+    document.getElementById('completion-code').textContent = `OLCHS-${dateStr}-${randomStr}`;
+}
+
+// --- GAME 1: VOCABULARY INVADERS ---
+const vocabData = [ { word: 'incredulously', def: 'In a disbelieving manner' }, { word: 'ordained', def: 'Given priestly authority' }, { word: 'blasphemy', def: 'Disrespect for something sacred' }, { word: 'falter', def: 'To pause uncertainly' }, { word: 'imperceptible', def: 'Impossible to sense' } ];
+const vocabWrongWords = ['fierce', 'timid', 'available', 'formal', 'pleasing'];
+let vocabCtx, vocabPlayer, vocabBullets, vocabInvaders, vocabState, vocabQuestionsPool;
+
+function initVocabInvaders() {
+    const canvas = document.getElementById('vocabCanvas');
+    vocabCtx = canvas.getContext('2d');
+    vocabQuestionsPool = [...vocabData].sort(() => Math.random() - 0.5);
+    vocabState = { wordsCleared: 0, gameOver: false, keys: {} };
+    document.addEventListener('keydown', e => { if(sections[currentSectionIndex] === 'game1-vocab') vocabState.keys[e.code] = true; });
+    document.addEventListener('keyup', e => { if(sections[currentSectionIndex] === 'game1-vocab') vocabState.keys[e.code] = false; });
+    vocabPlayer = { x: canvas.width / 2 - 25, y: canvas.height - 60, width: 50, height: 20, speed: 7, cooldown: 0 };
+    nextVocabWave();
+    vocabGameLoop();
+}
+
+function nextVocabWave() {
+    vocabInvaders = []; vocabBullets = [];
+    if (vocabQuestionsPool.length === 0) {
+        vocabState.gameOver = true;
+        showGameMessage('Challenge Complete!', `You mastered all vocabulary!`, 'Continue', advanceToNextGame);
+        return;
+    }
+    const currentQuestion = vocabQuestionsPool.pop();
+    document.getElementById('vocab-definition').textContent = currentQuestion.def;
+    vocabInvaders.push({ x: Math.random() * (vocabCtx.canvas.width - 120), y: 0, text: currentQuestion.word, isCorrect: true, speed: 1.2 });
+    const usedWrongWords = new Set();
+    for (let i = 0; i < 4; i++) {
+        let randomWrong;
+        do { randomWrong = vocabWrongWords[Math.floor(Math.random() * vocabWrongWords.length)]; } while (usedWrongWords.has(randomWrong));
+        usedWrongWords.add(randomWrong);
+        vocabInvaders.push({ x: Math.random() * (vocabCtx.canvas.width - 120), y: -50 * (i + Math.random()), text: randomWrong, isCorrect: false, speed: 1.2 });
+    }
+}
+
+function vocabGameLoop() {
+    if (vocabState.gameOver) return;
+    if (vocabState.keys['ArrowLeft'] && vocabPlayer.x > 0) vocabPlayer.x -= vocabPlayer.speed;
+    if (vocabState.keys['ArrowRight'] && vocabPlayer.x < vocabCtx.canvas.width - vocabPlayer.width) vocabPlayer.x += vocabPlayer.speed;
+    if (vocabState.keys['Space'] && vocabPlayer.cooldown <= 0) {
+        vocabBullets.push({ x: vocabPlayer.x + vocabPlayer.width / 2 - 2.5, y: vocabPlayer.y, width: 5, height: 10, speed: 10 });
+        vocabPlayer.cooldown = 15;
+    }
+    if (vocabPlayer.cooldown > 0) vocabPlayer.cooldown--;
+
+    for (let i = vocabBullets.length - 1; i >= 0; i--) { vocabBullets[i].y -= vocabBullets[i].speed; if (vocabBullets[i].y < 0) vocabBullets.splice(i, 1); }
+    for (let i = vocabInvaders.length - 1; i >= 0; i--) { if (vocabInvaders[i].y > vocabCtx.canvas.height) { restartCurrentGame('A word got past your ship.'); return; } vocabInvaders[i].y += vocabInvaders[i].speed; }
+    for (let i = vocabBullets.length - 1; i >= 0; i--) {
+        for (let j = vocabInvaders.length - 1; j >= 0; j--) {
+            const b = vocabBullets[i], inv = vocabInvaders[j];
+            if (!b || !inv) continue;
+            if (b.x < inv.x + 120 && b.x + b.width > inv.x && b.y < inv.y + 20 && b.y + b.height > inv.y) {
+                if (inv.isCorrect) { vocabState.wordsCleared++; nextVocabWave(); } else { restartCurrentGame('You shot the wrong word.'); return; }
+                vocabBullets.splice(i, 1); break;
+            }
+        }
+    }
+    document.getElementById('vocab-cleared').textContent = `${vocabState.wordsCleared} / 5`;
+    vocabCtx.clearRect(0, 0, vocabCtx.canvas.width, vocabCtx.canvas.height);
+    vocabCtx.fillStyle = '#006b3f';
+    vocabCtx.fillRect(vocabPlayer.x, vocabPlayer.y, vocabPlayer.width, vocabPlayer.height);
+    vocabCtx.fillStyle = '#fff';
+    vocabBullets.forEach(b => vocabCtx.fillRect(b.x, b.y, b.width, b.height));
+    vocabInvaders.forEach(inv => { vocabCtx.font = '20px Montserrat'; vocabCtx.fillStyle = '#fff'; vocabCtx.fillText(inv.text, inv.x, inv.y); });
+    activeGameLoop = requestAnimationFrame(vocabGameLoop);
+}
+
+// --- GAME 2: RHETORIC IDENTIFIER ---
+const appealsData = [
+    { quote: '"...burnt our towns, and destroyed the lives of our people."', answer: 'Pathos', options: ['Logos', 'Ethos'] },
+    { quote: '"To prove this, let Facts be submitted to a candid world."', answer: 'Logos', options: ['Pathos', 'Ethos'] },
+    { quote: '"...appealing to the Supreme Judge of the world for the rectitude of our intentions..."', answer: 'Ethos', options: ['Pathos', 'Logos'] },
+];
+const fallaciesData = [
+    { quote: '"It is not a child...she were twice put out of meetin‘ house for laughter during prayer."', answer: 'Ad Hominem', options: ['False Dilemma', 'Hasty Generalization'] },
+    { quote: '"...Mary Warren has been conquered by Satan... But if she speaks true... confess your pretense."', answer: 'False Dilemma', options: ['Ad Hominem', 'Hasty Generalization'] },
+    { quote: '"This child would murder your wife?" (Implies children are incapable of such evil)', answer: 'Hasty Generalization', options: ['Ad Hominem', 'False Dilemma'] },
+];
+let identifierState, identifierQuestions;
+
+function initIdentifierGame() {
+    identifierState = { level: 0, clearedInLevel: 0, gameOver: false };
+    loadIdentifierLevel();
+}
+
+function loadIdentifierLevel(){
+    identifierState.clearedInLevel = 0;
+    const levelTitle = document.getElementById('identifier-level-title');
+    if(identifierState.level === 0){
+        levelTitle.textContent = "Level 1: Rhetorical Appeals";
+        identifierQuestions = [...appealsData].sort(() => Math.random() - 0.5);
+    } else {
+        levelTitle.textContent = "Level 2: Logical Fallacies";
+        identifierQuestions = [...fallaciesData].sort(() => Math.random() - 0.5);
+    }
+    nextIdentifierRound();
+}
+
+function nextIdentifierRound() {
+    if (identifierQuestions.length === 0) {
+        identifierState.level++;
+        if (identifierState.level > 1) {
+            identifierState.gameOver = true;
+            showGameMessage('Challenge Complete!', 'You have mastered rhetoric!', 'Continue', advanceToNextGame);
+        } else {
+            loadIdentifierLevel();
+        }
+        return;
+    }
+    const question = identifierQuestions.pop();
+    document.getElementById('identifier-quote-box').textContent = question.quote;
+    document.getElementById('identifier-cleared').textContent = `${identifierState.clearedInLevel} / 3`;
+    
+    const optionsContainer = document.getElementById('identifier-options');
+    optionsContainer.innerHTML = '';
+    
+    const options = [question.answer, ...question.options];
+    for (let i = options.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [options[i], options[j]] = [options[j], options[i]];
+    }
+
+    options.forEach(opt => {
+        const button = document.createElement('button');
+        button.textContent = opt;
+        button.onclick = () => checkIdentifierAnswer(opt === question.answer);
+        optionsContainer.appendChild(button);
+    });
+}
+
+function checkIdentifierAnswer(isCorrect) {
+    if (isCorrect) {
+        identifierState.clearedInLevel++;
+        nextIdentifierRound();
+    } else {
+        restartCurrentGame('That was not the correct term.');
+    }
+}
+
+// --- GAME 3: SPARTAN ARCHERY TRIAL (FIXED) ---
+const archeryData = [
+    { quote: "The war is inevitable... let it come!", answer: "To persuade for war", options: ["To inform about history", "To entertain with stories"] },
+    { quote: "He has plundered our seas, ravaged our Coasts...", answer: "To provoke emotion (Pathos)", options: ["To show off writing skill", "To appeal to logic"] },
+    { quote: "Sir, we are not weak if we make a proper use of those means...", answer: "To build audience's confidence", options: ["To criticize the audience", "To ask for money"] },
+    { quote: "To prove this, let Facts be submitted...", answer: "To appeal to logic (Logos)", options: ["To build suspense", "To appeal to emotion"] },
+    { quote: "Who is Patrick Henry's intended audience?", answer: "Members of the Convention", options: ["The King of Great Britain", "The general public"] },
+    { quote: "Who is the source of authority for the Declaration?", answer: "The People of the Colonies", options: ["The Representatives", "The Supreme Judge"] }
+];
+let archeryCtx, archeryState, archeryPlayer, archeryArrow, archeryTargets, archeryQuestions;
+
+function initArcheryGame() {
+    const canvas = document.getElementById('archeryCanvas');
+    archeryCtx = canvas.getContext('2d');
+    archeryQuestions = [...archeryData].sort(() => Math.random() - 0.5);
+    archeryState = { gameOver: false, targetsHit: 0, mouse: {x: canvas.width, y: canvas.height/2} };
+    archeryPlayer = { x: 50, y: canvas.height - 50, angle: 0 };
+    archeryArrow = null;
+
+    canvas.addEventListener('mousemove', e => {
+        if(sections[currentSectionIndex] !== 'game3-archery') return;
+        const rect = canvas.getBoundingClientRect();
+        archeryState.mouse.x = e.clientX - rect.left;
+        archeryState.mouse.y = e.clientY - rect.top;
+    });
+    
+    canvas.addEventListener('click', e => {
+        if(sections[currentSectionIndex] !== 'game3-archery' || archeryArrow) return;
+        const angle = Math.atan2(archeryState.mouse.y - archeryPlayer.y, archeryState.mouse.x - archeryPlayer.x);
+        archeryArrow = { x: archeryPlayer.x, y: archeryPlayer.y, dx: Math.cos(angle) * 15, dy: Math.sin(angle) * 15, angle: angle };
+    });
+
+    nextArcheryRound();
+    archeryGameLoop();
+}
+
+function nextArcheryRound() {
+    archeryArrow = null;
+    if (archeryQuestions.length === 0) {
+        archeryState.gameOver = true;
+        showGameMessage('Challenge Complete!', 'Your aim is true! You have mastered textual analysis.', 'Finish Review', advanceToNextGame);
+        return;
+    }
+    const currentQuestion = archeryQuestions.pop();
+    document.getElementById('archery-quote').textContent = `"${currentQuestion.quote}"`;
+    document.getElementById('archery-hit').textContent = `${archeryState.targetsHit} / ${archeryData.length}`;
+    
+    archeryTargets = [];
+    const allOptions = [currentQuestion.answer, ...currentQuestion.options].sort(() => Math.random() - 0.5);
+    allOptions.forEach((opt, i) => {
+        archeryTargets.push({ x: 500 + Math.random() * 120, y: 50 + i * 110, width: 180, height: 50, text: opt, isCorrect: opt === currentQuestion.answer, dy: (Math.random() - 0.5) * 2 });
+    });
+}
+
+function updateArchery() {
+    if (archeryState.gameOver) return;
+
+    archeryPlayer.angle = Math.atan2(archeryState.mouse.y - archeryPlayer.y, archeryState.mouse.x - archeryPlayer.x);
+    archeryTargets.forEach(t => {
+        t.y += t.dy;
+        if (t.y < 0 || t.y + t.height > archeryCtx.canvas.height) t.dy *= -1;
+    });
+
+    if (archeryArrow) {
+        archeryArrow.x += archeryArrow.dx;
+        archeryArrow.y += archeryArrow.dy;
+        if (archeryArrow.x > archeryCtx.canvas.width || archeryArrow.y < 0 || archeryArrow.y > archeryCtx.canvas.height) {
+            restartCurrentGame('You missed the targets.');
+            return;
+        }
+        for(const target of archeryTargets) {
+            if (archeryArrow.x > target.x && archeryArrow.x < target.x + target.width && archeryArrow.y > target.y && archeryArrow.y < target.y + target.height) {
+                if (target.isCorrect) {
+                    archeryState.targetsHit++;
+                    nextArcheryRound();
+                } else {
+                    restartCurrentGame('You hit the wrong target.');
+                }
+                return;
+            }
+        }
+    }
+}
+
+function drawArchery() {
+    if (!archeryCtx) return;
+    archeryCtx.clearRect(0, 0, archeryCtx.canvas.width, archeryCtx.canvas.height);
+    archeryTargets.forEach(t => {
+        archeryCtx.fillStyle = '#006b3f';
+        archeryCtx.fillRect(t.x, t.y, t.width, t.height);
+        archeryCtx.fillStyle = '#fff';
+        archeryCtx.font = '14px Montserrat';
+        archeryCtx.textAlign = 'center';
+        archeryCtx.fillText(t.text, t.x + t.width/2, t.y + t.height/2 + 5);
+    });
+
+    if (archeryArrow) {
+        archeryCtx.save();
+        archeryCtx.translate(archeryArrow.x, archeryArrow.y);
+        archeryCtx.rotate(archeryArrow.angle);
+        archeryCtx.fillStyle = '#fff';
+        archeryCtx.fillRect(0, -2, 40, 4);
+        archeryCtx.restore();
+    }
+    
+    archeryCtx.save();
+    archeryCtx.translate(archeryPlayer.x, archeryPlayer.y);
+    archeryCtx.rotate(archeryPlayer.angle);
+    archeryCtx.fillStyle = '#ccc';
+    archeryCtx.fillRect(0, -5, 50, 10);
+    archeryCtx.fillRect(20, -15, 10, 30);
+    archeryCtx.restore();
+}
+
+function archeryGameLoop() {
+    if (archeryState.gameOver) {
+        // Stop the loop if the game is flagged as over.
+        activeGameLoop = null;
+        return;
+    }
+    
+    updateArchery();
+    drawArchery();
+
+    activeGameLoop = requestAnimationFrame(archeryGameLoop);
+}
+</script>
+</body>
+</html>
