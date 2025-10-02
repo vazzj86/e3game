@@ -69,6 +69,8 @@
             margin: 1rem auto;
             display: block;
             cursor: crosshair;
+            width: 100%; /* Make canvas responsive */
+            height: auto;
         }
         
         .game-ui {
@@ -166,6 +168,31 @@
              color: var(--spartan-green);
              font-size: 1.8rem;
         }
+        
+        /* --- NEW IPAD CONTROLS STYLES --- */
+        .touch-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            user-select: none; /* Prevent text selection on tap */
+        }
+        .touch-btn {
+            background-color: var(--spartan-green);
+            color: white;
+            border-radius: 10px;
+            padding: 20px;
+            font-size: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 77, 38, 0.2);
+            flex-grow: 1;
+        }
+        .touch-btn.shoot {
+            background-color: var(--spartan-light-green);
+            margin: 0 10px;
+        }
 
     </style>
 </head>
@@ -188,13 +215,17 @@
 
         <div id="game1-vocab" class="game-section">
             <h2>Game 1: Vocabulary Invaders</h2>
-            <p>Use <strong>Arrow Keys</strong> to move and <strong>Spacebar</strong> to shoot. <span class="warning">A mistake will restart this game.</span></p>
-            <canvas id="vocabCanvas" width="800" height="500"></canvas>
-            <div class="game-ui">
+             <p>Use the <strong>on-screen buttons</strong> to move and shoot. <span class="warning">A mistake will restart this game.</span></p>
+            <canvas id="vocabCanvas"></canvas> <div class="game-ui">
                 <h3>DEFINITION: <span id="vocab-definition"></span></h3>
                 <div class="game-info">
                     <span>WORDS CLEARED: <span id="vocab-cleared">0 / 5</span></span>
                 </div>
+            </div>
+            <div class="touch-controls">
+                <div id="btn-left" class="touch-btn">◀</div>
+                <div id="btn-shoot" class="touch-btn shoot">SHOOT</div>
+                <div id="btn-right" class="touch-btn">▶</div>
             </div>
         </div>
 
@@ -211,9 +242,8 @@
 
         <div id="game3-archery" class="game-section">
             <h2>Game 3: Spartan Archery Trial</h2>
-            <p>Read the quote. Use your <strong>Mouse</strong> to aim, then <strong>Click to Shoot</strong> the correct analysis. <span class="warning">A mistake will restart this game.</span></p>
-            <canvas id="archeryCanvas" width="800" height="500"></canvas>
-            <div class="game-ui">
+             <p>Use your <strong>finger</strong> to aim, then <strong>tap</strong> to shoot the correct analysis. <span class="warning">A mistake will restart this game.</span></p>
+            <canvas id="archeryCanvas"></canvas> <div class="game-ui">
                 <h3>QUOTE: <span id="archery-quote"></span></h3>
                 <div class="game-info">
                     <span>TARGETS HIT: <span id="archery-hit">0 / 6</span></span>
@@ -311,18 +341,43 @@ function showCompletionScreen() {
     document.getElementById('completion-code').textContent = `OLCHS-${dateStr}-${randomStr}`;
 }
 
-// --- GAME 1: VOCABULARY INVADERS ---
+// --- GAME 1: VOCABULARY INVADERS (UPDATED FOR IPAD) ---
 const vocabData = [ { word: 'incredulously', def: 'In a disbelieving manner' }, { word: 'ordained', def: 'Given priestly authority' }, { word: 'blasphemy', def: 'Disrespect for something sacred' }, { word: 'falter', def: 'To pause uncertainly' }, { word: 'imperceptible', def: 'Impossible to sense' } ];
 const vocabWrongWords = ['fierce', 'timid', 'available', 'formal', 'pleasing'];
 let vocabCtx, vocabPlayer, vocabBullets, vocabInvaders, vocabState, vocabQuestionsPool;
+let isVocabInitialized = false; // Prevent multiple listener attachments
 
 function initVocabInvaders() {
     const canvas = document.getElementById('vocabCanvas');
     vocabCtx = canvas.getContext('2d');
+
+    // Make canvas responsive
+    canvas.width = canvas.clientWidth;
+    canvas.height = canvas.width * (5/8); // Maintain 800x500 aspect ratio
+
     vocabQuestionsPool = [...vocabData].sort(() => Math.random() - 0.5);
     vocabState = { wordsCleared: 0, gameOver: false, keys: {} };
-    document.addEventListener('keydown', e => { if(sections[currentSectionIndex] === 'game1-vocab') vocabState.keys[e.code] = true; });
-    document.addEventListener('keyup', e => { if(sections[currentSectionIndex] === 'game1-vocab') vocabState.keys[e.code] = false; });
+    
+    if (!isVocabInitialized) {
+        // Keyboard controls for desktop
+        document.addEventListener('keydown', e => { if(sections[currentSectionIndex] === 'game1-vocab') vocabState.keys[e.code] = true; });
+        document.addEventListener('keyup', e => { if(sections[currentSectionIndex] === 'game1-vocab') vocabState.keys[e.code] = false; });
+        
+        // Touch controls for iPad
+        const btnLeft = document.getElementById('btn-left');
+        const btnRight = document.getElementById('btn-right');
+        const btnShoot = document.getElementById('btn-shoot');
+        
+        btnLeft.addEventListener('touchstart', e => { e.preventDefault(); vocabState.keys['ArrowLeft'] = true; });
+        btnLeft.addEventListener('touchend', e => { e.preventDefault(); vocabState.keys['ArrowLeft'] = false; });
+        btnRight.addEventListener('touchstart', e => { e.preventDefault(); vocabState.keys['ArrowRight'] = true; });
+        btnRight.addEventListener('touchend', e => { e.preventDefault(); vocabState.keys['ArrowRight'] = false; });
+        btnShoot.addEventListener('touchstart', e => { e.preventDefault(); vocabState.keys['Space'] = true; });
+        btnShoot.addEventListener('touchend', e => { e.preventDefault(); vocabState.keys['Space'] = false; });
+
+        isVocabInitialized = true;
+    }
+
     vocabPlayer = { x: canvas.width / 2 - 25, y: canvas.height - 60, width: 50, height: 20, speed: 7, cooldown: 0 };
     nextVocabWave();
     vocabGameLoop();
@@ -379,6 +434,7 @@ function vocabGameLoop() {
     activeGameLoop = requestAnimationFrame(vocabGameLoop);
 }
 
+
 // --- GAME 2: RHETORIC IDENTIFIER ---
 const appealsData = [
     { quote: '"...burnt our towns, and destroyed the lives of our people."', answer: 'Pathos', options: ['Logos', 'Ethos'] },
@@ -407,6 +463,7 @@ function loadIdentifierLevel(){
         levelTitle.textContent = "Level 2: Logical Fallacies";
         identifierQuestions = [...fallaciesData].sort(() => Math.random() - 0.5);
     }
+    document.getElementById('identifier-cleared').textContent = `0 / 3`; // Reset counter text
     nextIdentifierRound();
 }
 
@@ -428,11 +485,7 @@ function nextIdentifierRound() {
     const optionsContainer = document.getElementById('identifier-options');
     optionsContainer.innerHTML = '';
     
-    const options = [question.answer, ...question.options];
-    for (let i = options.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [options[i], options[j]] = [options[j], options[i]];
-    }
+    const options = [question.answer, ...question.options].sort(() => 0.5 - Math.random());
 
     options.forEach(opt => {
         const button = document.createElement('button');
@@ -451,7 +504,8 @@ function checkIdentifierAnswer(isCorrect) {
     }
 }
 
-// --- GAME 3: SPARTAN ARCHERY TRIAL (FIXED) ---
+
+// --- GAME 3: SPARTAN ARCHERY TRIAL (UPDATED FOR IPAD) ---
 const archeryData = [
     { quote: "The war is inevitable... let it come!", answer: "To persuade for war", options: ["To inform about history", "To entertain with stories"] },
     { quote: "He has plundered our seas, ravaged our Coasts...", answer: "To provoke emotion (Pathos)", options: ["To show off writing skill", "To appeal to logic"] },
@@ -461,27 +515,45 @@ const archeryData = [
     { quote: "Who is the source of authority for the Declaration?", answer: "The People of the Colonies", options: ["The Representatives", "The Supreme Judge"] }
 ];
 let archeryCtx, archeryState, archeryPlayer, archeryArrow, archeryTargets, archeryQuestions;
+let isArcheryInitialized = false; // Prevent multiple listener attachments
 
 function initArcheryGame() {
     const canvas = document.getElementById('archeryCanvas');
     archeryCtx = canvas.getContext('2d');
+    
+    // Make canvas responsive
+    canvas.width = canvas.clientWidth;
+    canvas.height = canvas.width * (5/8); // Maintain 800x500 aspect ratio
+
     archeryQuestions = [...archeryData].sort(() => Math.random() - 0.5);
     archeryState = { gameOver: false, targetsHit: 0, mouse: {x: canvas.width, y: canvas.height/2} };
     archeryPlayer = { x: 50, y: canvas.height - 50, angle: 0 };
     archeryArrow = null;
 
-    canvas.addEventListener('mousemove', e => {
-        if(sections[currentSectionIndex] !== 'game3-archery') return;
-        const rect = canvas.getBoundingClientRect();
-        archeryState.mouse.x = e.clientX - rect.left;
-        archeryState.mouse.y = e.clientY - rect.top;
-    });
-    
-    canvas.addEventListener('click', e => {
-        if(sections[currentSectionIndex] !== 'game3-archery' || archeryArrow) return;
-        const angle = Math.atan2(archeryState.mouse.y - archeryPlayer.y, archeryState.mouse.x - archeryPlayer.x);
-        archeryArrow = { x: archeryPlayer.x, y: archeryPlayer.y, dx: Math.cos(angle) * 15, dy: Math.sin(angle) * 15, angle: angle };
-    });
+    if (!isArcheryInitialized) {
+        const handleAim = (e) => {
+            if(sections[currentSectionIndex] !== 'game3-archery') return;
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX || e.touches[0].clientX;
+            const y = e.clientY || e.touches[0].clientY;
+            archeryState.mouse.x = x - rect.left;
+            archeryState.mouse.y = y - rect.top;
+        }
+
+        const handleShoot = () => {
+             if(sections[currentSectionIndex] !== 'game3-archery' || archeryArrow) return;
+             const angle = Math.atan2(archeryState.mouse.y - archeryPlayer.y, archeryState.mouse.x - archeryPlayer.x);
+             archeryArrow = { x: archeryPlayer.x, y: archeryPlayer.y, dx: Math.cos(angle) * 15, dy: Math.sin(angle) * 15, angle: angle };
+        }
+
+        // Add both mouse and touch listeners
+        canvas.addEventListener('mousemove', handleAim);
+        canvas.addEventListener('touchmove', e => { e.preventDefault(); handleAim(e); });
+        canvas.addEventListener('click', handleShoot);
+        canvas.addEventListener('touchstart', e => { e.preventDefault(); handleShoot(); });
+
+        isArcheryInitialized = true;
+    }
 
     nextArcheryRound();
     archeryGameLoop();
@@ -501,7 +573,10 @@ function nextArcheryRound() {
     archeryTargets = [];
     const allOptions = [currentQuestion.answer, ...currentQuestion.options].sort(() => Math.random() - 0.5);
     allOptions.forEach((opt, i) => {
-        archeryTargets.push({ x: 500 + Math.random() * 120, y: 50 + i * 110, width: 180, height: 50, text: opt, isCorrect: opt === currentQuestion.answer, dy: (Math.random() - 0.5) * 2 });
+        // Adjust target positions based on canvas size
+        const targetWidth = archeryCtx.canvas.width * 0.3;
+        const targetX = archeryCtx.canvas.width * 0.6 + Math.random() * (archeryCtx.canvas.width * 0.1);
+        archeryTargets.push({ x: targetX, y: 50 + i * 110, width: targetWidth, height: 50, text: opt, isCorrect: opt === currentQuestion.answer, dy: (Math.random() - 0.5) * 2 });
     });
 }
 
@@ -544,7 +619,8 @@ function drawArchery() {
         archeryCtx.fillStyle = '#fff';
         archeryCtx.font = '14px Montserrat';
         archeryCtx.textAlign = 'center';
-        archeryCtx.fillText(t.text, t.x + t.width/2, t.y + t.height/2 + 5);
+        archeryCtx.textBaseline = 'middle';
+        archeryCtx.fillText(t.text, t.x + t.width/2, t.y + t.height/2);
     });
 
     if (archeryArrow) {
@@ -567,7 +643,6 @@ function drawArchery() {
 
 function archeryGameLoop() {
     if (archeryState.gameOver) {
-        // Stop the loop if the game is flagged as over.
         activeGameLoop = null;
         return;
     }
